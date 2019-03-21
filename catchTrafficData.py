@@ -11,12 +11,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 #地点和对应编号
 city_dic = {'北碚': 2358, '璧山': 2359, '长寿': 2360, '城口': 2361, '大足': 2362, '垫江': 2363, '丰都': 2364, '奉节': 2365, '涪陵': 2366, '合川': 2367, '江北': 2368, '江津': 2369, '开县': 2370, '梁平': 2371, '南川': 2372, '彭水': 2374, '綦江': 2375, '黔江': 2376, '荣昌': 2377, '石柱': 2378, '铜梁': 2379, '潼南': 2380, '万州': 2381, '巫山': 2382, '巫溪': 2383, '武隆': 2384, '秀山': 2385, '永川': 2386, '酉阳': 2387, '忠县': 2388, '重庆': 2389}
 
-#自动唤起chrome
-browser = webdriver.Chrome()
-wait = WebDriverWait(browser, 10)
-browser.get('http://cq.122.gov.cn/views/swfzpub.html')
-
-
 #点击全部，获得所有数据页
 def click_all():
     try:
@@ -75,7 +69,8 @@ def get_record():
         #item是元祖（tuple）类型，不能修改！！！
         #item[3] = time_trip(item[3])错！！！
         time_new = time_parse(item[1])
-        location_new = location_parse(item[2])
+        # location_new = location_parse(item[2])
+        location_new = location_parse_detail(item[1])
         event_new = event_parse(item[1])
         #得到的时间格式为2017-08-25 07:05:00，需要进行切片
         time_trip = time_new[0:10]
@@ -109,6 +104,14 @@ def location_parse(location):
     #酉阳土家族苗族，秀山土家族苗族
     location = re.findall(r"重?庆?市?公?安?局?(.*?)自?治?新?[县区]",location)
     #万一没解析到，就会报错，加个判断条件
+    if(len(location)):
+        return location[0]
+    else:
+        return "--"
+
+#解析详细地点
+def location_parse_detail(event):
+    location = re.findall(r"在+(.*?)发生事故+",event)
     if(len(location)):
         return location[0]
     else:
@@ -155,7 +158,13 @@ def get_id(location):
     return city_id
 
 
-def main():
+if __name__ == '__main__':
+    # 自动唤起chrome
+    browser = webdriver.Chrome()
+    wait = WebDriverWait(browser, 10)
+    browser.get('http://cq.122.gov.cn/views/swfzpub.html')  #死亡事故
+    # browser.get('https://cq.122.gov.cn/views/viopub.html')  #重点车辆违法行为
+
     page = 31
     total = 20
     click_all()
@@ -166,7 +175,5 @@ def main():
                 print(item)
                 write_to_file(item)
         next_page()
-    # browser.quit()
 
-if __name__ == '__main__':
-    main()
+    browser.quit()
